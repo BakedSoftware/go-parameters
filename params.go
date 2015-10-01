@@ -52,6 +52,44 @@ func (p *Params) GetFloat(key string) float64 {
 	return f
 }
 
+func (p *Params) GetFloatSliceOk(key string) ([]float64, bool) {
+	val, ok := p.Get(key)
+	if ok {
+		switch val.(type) {
+		case []float64:
+			return val.([]float64), true
+		case string:
+			raw := strings.Split(val.(string), ",")
+			slice := make([]float64, len(raw))
+			for i, k := range raw {
+				if num, err := strconv.ParseFloat(k, 64); err == nil {
+					slice[i] = num
+				}
+			}
+			return slice, true
+		case []interface{}:
+			raw := val.([]interface{})
+			slice := make([]float64, len(raw))
+			for i, k := range raw {
+				if num, ok := k.(float64); ok {
+					slice[i] = num
+				} else if num, ok := k.(string); ok {
+					if parsed, err := strconv.ParseFloat(num, 64); err == nil {
+						slice[i] = parsed
+					}
+				}
+			}
+			return slice, true
+		}
+	}
+	return []float64{}, false
+}
+
+func (p *Params) GetFloatSlice(key string) []float64 {
+	slice, _ := p.GetFloatSliceOk(key)
+	return slice
+}
+
 func (p *Params) GetBoolOk(key string) (bool, bool) {
 	val, ok := p.Get(key)
 	if ok {
@@ -89,6 +127,44 @@ func (p *Params) GetInt(key string) int {
 	return f
 }
 
+func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
+	val, ok := p.Get(key)
+	if ok {
+		switch val.(type) {
+		case []int:
+			return val.([]int), true
+		case string:
+			raw := strings.Split(val.(string), ",")
+			slice := make([]int, len(raw))
+			for i, k := range raw {
+				if num, err := strconv.ParseInt(k, 10, 64); err == nil {
+					slice[i] = int(num)
+				}
+			}
+			return slice, true
+		case []interface{}:
+			raw := val.([]interface{})
+			slice := make([]int, len(raw))
+			for i, k := range raw {
+				if num, ok := k.(int); ok {
+					slice[i] = num
+				} else if num, ok := k.(string); ok {
+					if parsed, err := strconv.ParseInt(num, 10, 64); err == nil {
+						slice[i] = int(parsed)
+					}
+				}
+			}
+			return slice, true
+		}
+	}
+	return []int{}, false
+}
+
+func (p *Params) GetIntSlice(key string) []int {
+	slice, _ := p.GetIntSliceOk(key)
+	return slice
+}
+
 func (p *Params) GetUint64Ok(key string) (uint64, bool) {
 	val, ok := p.Get(key)
 	if sval, sok := val.(string); sok {
@@ -111,6 +187,23 @@ func (p *Params) GetUint64(key string) uint64 {
 	return f
 }
 
+func (p *Params) GetUint64SliceOk(key string) ([]uint64, bool) {
+	if raw, ok := p.GetIntSliceOk(key); ok {
+		slice := make([]uint64, len(raw))
+		for i, num := range raw {
+			slice[i] = uint64(num)
+		}
+		return slice, true
+	}
+
+	return []uint64{}, false
+}
+
+func (p *Params) GetUint64Slice(key string) []uint64 {
+	slice, _ := p.GetUint64SliceOk(key)
+	return slice
+}
+
 func (p *Params) GetStringOk(key string) (string, bool) {
 	val, ok := p.Get(key)
 	if ok {
@@ -127,6 +220,31 @@ func (p *Params) GetString(key string) string {
 
 	//Return the string, trim spaces
 	return strings.Trim(str, " ")
+}
+
+func (p *Params) GetStringSliceOk(key string) ([]string, bool) {
+	val, ok := p.Get(key)
+	if ok {
+		switch val.(type) {
+		case []string:
+			return val.([]string), true
+		case string:
+			return strings.Split(val.(string), ","), true
+		case []interface{}:
+			raw := val.([]interface{})
+			slice := make([]string, len(raw))
+			for i, k := range raw {
+				slice[i] = k.(string)
+			}
+			return slice, true
+		}
+	}
+	return []string{}, false
+}
+
+func (p *Params) GetStringSlice(key string) []string {
+	slice, _ := p.GetStringSliceOk(key)
+	return slice
 }
 
 func (p *Params) GetBytesOk(key string) ([]byte, bool) {
@@ -281,7 +399,18 @@ func (p *Params) Imbue(obj interface{}) {
 		} else if fieldType.Type.Kind() == reflect.Float64 {
 			//Set float64
 			field.Set(reflect.ValueOf(p.GetFloat(k)))
-
+		} else if fieldType.Type == reflect.SliceOf(reflect.TypeOf("")) {
+			//Set []string
+			field.Set(reflect.ValueOf(p.GetStringSlice(k)))
+		} else if fieldType.Type == reflect.SliceOf(reflect.TypeOf(int(0))) {
+			//Set []int
+			field.Set(reflect.ValueOf(p.GetIntSlice(k)))
+		} else if fieldType.Type == reflect.SliceOf(reflect.TypeOf(uint64(0))) {
+			//Set []uint64
+			field.Set(reflect.ValueOf(p.GetUint64Slice(k)))
+		} else if fieldType.Type == reflect.SliceOf(reflect.TypeOf(float64(0))) {
+			//Set []float64
+			field.Set(reflect.ValueOf(p.GetFloatSlice(k)))
 		} else if CustomTypeSetter != nil {
 			val, _ := p.Get(k)
 			CustomTypeSetter(&field, val)

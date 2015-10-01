@@ -241,7 +241,7 @@ func TestParseJSONBodyMux(t *testing.T) {
 }
 
 func TestImbue(t *testing.T) {
-	body := "test=true"
+	body := "test=true&keys=this,that,something&values=1,2,3"
 	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
 	if err != nil {
 		t.Fatal("Could not build request", err)
@@ -253,7 +253,9 @@ func TestImbue(t *testing.T) {
 	params := GetParams(r)
 
 	type testType struct {
-		Test bool
+		Test   bool
+		Keys   []string
+		Values []int
 	}
 
 	var obj testType
@@ -261,5 +263,18 @@ func TestImbue(t *testing.T) {
 
 	if obj.Test != true {
 		t.Fatal("Value of 'test' should be 'true', got: ", obj.Test)
+	}
+	if len(obj.Keys) != 3 {
+		t.Fatal("Length of 'keys' should be '3', got: ", len(obj.Keys))
+	}
+	if len(obj.Values) != 3 {
+		t.Fatal("Length of 'values' should be '3', got: ", len(obj.Values))
+	}
+	values := []int{1, 2, 3}
+	for i, k := range obj.Values {
+		if values[i] != k {
+			t.Log("Expected ", values[i], ", got:", k)
+			t.Fail()
+		}
 	}
 }
