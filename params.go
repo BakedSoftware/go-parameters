@@ -17,7 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-  "fmt" 
   
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
@@ -154,7 +153,6 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 			raw := val.([]interface{})
 			slice := make([]int, len(raw))
 			for i, k := range raw {
-				fmt.Println(k," type:",reflect.TypeOf(k))
 				if num, ok := k.(int); ok {
 					slice[i] = num
 				} else if num, ok := k.(float64); ok {
