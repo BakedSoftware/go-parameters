@@ -1,3 +1,10 @@
+// Package parameters parses json into parameters object
+// usage: 
+//   1) parse json to parameters: 
+// parameters.MakeParsedReq(fn http.HandlerFunc)
+//   2) get the parameters:
+// params := parameters.GetParams(req)
+// val := params.GetXXX("key")     
 package parameters
 
 import (
@@ -10,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+  
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 )
@@ -137,7 +144,7 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 			raw := strings.Split(val.(string), ",")
 			slice := make([]int, len(raw))
 			for i, k := range raw {
-				if num, err := strconv.ParseInt(k, 10, 64); err == nil {
+				if num, err := strconv.ParseInt(k, 10, 64); err == nil { 
 					slice[i] = int(num)
 				}
 			}
@@ -148,6 +155,8 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 			for i, k := range raw {
 				if num, ok := k.(int); ok {
 					slice[i] = num
+				} else if num, ok := k.(float64); ok {
+					slice[i] = int(num)
 				} else if num, ok := k.(string); ok {
 					if parsed, err := strconv.ParseInt(num, 10, 64); err == nil {
 						slice[i] = int(parsed)
