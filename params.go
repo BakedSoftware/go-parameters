@@ -8,8 +8,11 @@
 package parameters
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"mime/multipart"
@@ -22,10 +25,12 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
+	"github.com/ugorji/go/codec"
 )
 
 type Params struct {
-	Values map[string]interface{}
+	isBinary bool
+	Values   map[string]interface{}
 }
 
 func (p *Params) Get(key string) (interface{}, bool) {
@@ -559,6 +564,37 @@ func ParseParams(req *http.Request) {
 		for k, v := range tmap {
 			if _, pres := p.Values[k]; !pres {
 				p.Values[k] = v
+			}
+		}
+	} else if ct == "application/x-msgpack" {
+		var mh codec.MsgpackHandle
+		p.isBinary = true
+		mh.MapType = reflect.TypeOf(p.Values)
+		body, _ := ioutil.ReadAll(req.Body)
+		if len(body) > 0 {
+			buff := bytes.NewBuffer(body)
+			first := body[0]
+			if (first >= 0x80 && first <= 0x8f) || (first == 0xde || first == 0xdf) {
+				err := codec.NewDecoder(buff, &mh).Decode(&p.Values)
+				if err != nil && err != io.EOF {
+					log.Println("Failed decoding msgpack", err)
+				}
+			} else {
+				if p.Values == nil {
+					p.Values = make(map[string]interface{}, 0)
+				}
+				var err error
+				for err == nil {
+					vals := make([]interface{}, 0)
+					err = codec.NewDecoder(buff, &mh).Decode(&vals)
+					if err != nil && err != io.EOF {
+						log.Println("Failed decoding msgpack", err)
+					} else {
+						for i := len(vals) - 1; i >= 1; i -= 2 {
+							p.Values[string(vals[i-1].([]byte))] = vals[i]
+						}
+					}
+				}
 			}
 		}
 	} else {
