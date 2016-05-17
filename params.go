@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"reflect"
@@ -133,6 +134,66 @@ func (p *Params) GetIntOk(key string) (int, bool) {
 func (p *Params) GetInt(key string) int {
 	f, _ := p.GetIntOk(key)
 	return f
+}
+
+func (p *Params) GetInt8Ok(key string) (int8, bool) {
+	val, ok := p.GetIntOk(key)
+
+	if !ok || val < math.MinInt8 || val > math.MaxInt8 {
+		return 0, false
+	}
+
+	return int8(val), true
+}
+
+func (p *Params) GetInt8(key string) int8 {
+	f, _ := p.GetInt8Ok(key)
+	return f
+}
+
+func (p *Params) GetInt16Ok(key string) (int16, bool) {
+	val, ok := p.GetIntOk(key)
+
+	if !ok || val < math.MinInt16 || val > math.MaxInt16 {
+		return 0, false
+	}
+
+	return int16(val), true
+}
+
+func (p *Params) GetInt16(key string) int16 {
+	f, _ := p.GetInt16Ok(key)
+	return f
+}
+
+func (p *Params) GetInt32Ok(key string) (int32, bool) {
+	val, ok := p.GetIntOk(key)
+
+	if !ok || val < math.MinInt32 || val > math.MaxInt32 {
+		return 0, false
+	}
+
+	return int32(val), true
+}
+
+func (p *Params) GetInt32(key string) int32 {
+	f, _ := p.GetInt32Ok(key)
+	return f
+}
+
+func (p *Params) GetInt64Ok(key string) (int64, bool) {
+	val, ok := p.GetIntOk(key)
+
+	if !ok {
+		return 0, false
+	}
+
+	return int64(val), true
+}
+
+func (p *Params) GetInt64(key string) int64 {
+	f, _ := p.GetIntOk(key)
+	return int64(f)
 }
 
 func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
