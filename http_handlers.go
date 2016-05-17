@@ -10,7 +10,7 @@ import (
 )
 
 // CORSHeaders adds cross origin resource sharing headers to a response
-func CORSHeaders(fn httprouter.Handle) httprouter.Handle {
+func CORSHeaders(fn http.HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		if origin := r.Header.Get("Origin"); origin != "" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -18,12 +18,12 @@ func CORSHeaders(fn httprouter.Handle) httprouter.Handle {
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		fn(w, r, p)
+		fn(w, r)
 	}
 }
 
 // SendCORS sends a cross origin resource sharing header only
-func SendCORS(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
+func SendCORS(w http.ResponseWriter, req *http.Request) {
 	if origin := req.Header.Get("Origin"); origin != "" {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
@@ -43,13 +43,13 @@ func JSONResp(fn httprouter.Handle) httprouter.Handle {
 
 // GeneralResponse calls the default wrappers: EnableGZIP, LogRequest,
 // CORSHeaders
-func GeneralResponse(fn httprouter.Handle) httprouter.Handle {
+func GeneralResponse(fn http.HandlerFunc) httprouter.Handle {
 	return EnableGZIP(MakeHTTPRouterParsedReq(CORSHeaders(fn)))
 }
 
 // GeneralJSONRequest calls the default wrappers for a json response:
 // EnableGZIP, JSONResp, LogRequest, CORSHeaders
-func GeneralJSONResponse(fn httprouter.Handle) httprouter.Handle {
+func GeneralJSONResponse(fn http.HandlerFunc) httprouter.Handle {
 	return EnableGZIP(JSONResp(MakeHTTPRouterParsedReq(CORSHeaders(fn))))
 }
 
