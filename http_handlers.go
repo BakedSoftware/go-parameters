@@ -1,4 +1,4 @@
-package util
+package parameters
 
 import (
 	"compress/gzip"
