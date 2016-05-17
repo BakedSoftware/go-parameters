@@ -20,6 +20,7 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 )
 
 type Params struct {
@@ -342,6 +343,25 @@ func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		ParseParams(req)
 		fn(rw, req)
+	}
+}
+
+func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
+	return func(rw http.ResponseWriter, req *http.Request, p httprouter.Params) {
+		ParseParams(req)
+		params := GetParams(req)
+		for _, param := range p {
+			const ID = "id"
+			if strings.Contains(param.Key, ID) {
+				id, perr := strconv.ParseUint(param.Value, 10, 64)
+				if perr != nil {
+					params.Values[param.Key] = param.Value
+				} else {
+					params.Values[param.Key] = id
+				}
+			}
+		}
+		fn(rw, req, p)
 	}
 }
 
