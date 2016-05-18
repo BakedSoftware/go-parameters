@@ -428,6 +428,17 @@ func (p *Params) Imbue(obj interface{}) {
 	}
 }
 
+// HasAll will return if all specified keys are found in the params object
+func (p *Params) HasAll(keys ...string) (bool, []string) {
+	missing := make([]string, 0)
+	for _, key := range keys {
+		if _, exists := p.Values[key]; !exists {
+			missing = append(missing, key)
+		}
+	}
+	return len(missing) == 0, missing
+}
+
 //Permits only the allowed fields given by allowedKeys
 func (p *Params) Permit(allowedKeys []string) {
 	for key, _ := range p.Values {

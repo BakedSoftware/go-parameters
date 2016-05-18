@@ -278,3 +278,37 @@ func TestImbue(t *testing.T) {
 		}
 	}
 }
+
+func TestHasAll(t *testing.T) {
+	body := "test=true&keys=this,that,something&values=1,2,3"
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+	//Test All
+	if ok, missing := params.HasAll("test", "keys", "values"); !ok || len(missing) > 0 {
+		t.Fatal("Params should have all keys, could not find", missing)
+	}
+
+	// Test Partial Contains
+	if ok, missing := params.HasAll("test"); !ok || len(missing) > 0 {
+		t.Fatal("Params should have key 'test', could not find", missing)
+	}
+
+	// Test Partial Missing
+	if ok, missing := params.HasAll("test", "nope"); ok || len(missing) == 0 {
+		t.Fatal("Params should not have key 'nope'", missing)
+	} else if contains(missing, "test") {
+		t.Fatal("Missing should not contain 'test'")
+	}
+
+	// Test All missing
+	if ok, missing := params.HasAll("negative", "nope"); ok || len(missing) == 0 {
+		t.Fatal("Params should not have key 'nope' nor 'negative'", missing)
+	}
+}
