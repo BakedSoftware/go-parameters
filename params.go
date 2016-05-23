@@ -259,8 +259,19 @@ func (p *Params) GetUint64Ok(key string) (uint64, bool) {
 		ok = err == nil
 	}
 	if ok {
+		if valInt, ok := val.(int64); ok {
+			val = uint64(valInt)
+		}
 		if valUint, ok := val.(uint64); ok {
 			return valUint, true
+		} else if valUint, ok := val.(uint); ok {
+			return uint64(valUint), true
+		} else if valUint, ok := val.(uint8); ok {
+			return uint64(valUint), true
+		} else if valUint, ok := val.(uint16); ok {
+			return uint64(valUint), true
+		} else if valUint, ok := val.(uint32); ok {
+			return uint64(valUint), true
 		} else if valfloat, ok := val.(float64); ok {
 			return uint64(valfloat), true
 		} else if valbyte, ok := val.([]byte); ok {
