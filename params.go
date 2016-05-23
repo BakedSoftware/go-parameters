@@ -263,6 +263,10 @@ func (p *Params) GetUint64Ok(key string) (uint64, bool) {
 			return valUint, true
 		} else if valfloat, ok := val.(float64); ok {
 			return uint64(valfloat), true
+		} else if valbyte, ok := val.([]byte); ok {
+			var err error
+			val, err = strconv.ParseFloat(string(valbyte), 64)
+			ok = err == nil
 		}
 	}
 	return 0, false
