@@ -285,6 +285,8 @@ func (p *Params) GetStringOk(key string) (string, bool) {
 	if ok {
 		if s, is := val.(string); is {
 			return s, true
+		} else if s, is := val.([]byte); is {
+			return string(s), true
 		}
 	}
 	return "", false
