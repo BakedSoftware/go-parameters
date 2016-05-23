@@ -207,6 +207,16 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 		switch val.(type) {
 		case []int:
 			return val.([]int), true
+		case []byte:
+			val = string(val.([]byte))
+			raw := strings.Split(val.(string), ",")
+			slice := make([]int, len(raw))
+			for i, k := range raw {
+				if num, err := strconv.ParseInt(k, 10, 64); err == nil {
+					slice[i] = int(num)
+				}
+			}
+			return slice, true
 		case string:
 			raw := strings.Split(val.(string), ",")
 			slice := make([]int, len(raw))
