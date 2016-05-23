@@ -609,6 +609,8 @@ func ParseParams(req *http.Request) {
 					}
 				}
 			}
+		} else {
+			p.Values = make(map[string]interface{}, 0)
 		}
 	} else {
 		p.Values = tmap
