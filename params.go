@@ -575,7 +575,9 @@ func contains(haystack []string, needle string) bool {
 
 func ParseParams(req *http.Request) {
 	var p Params
-	req.ParseMultipartForm(10000000)
+	if err := req.ParseMultipartForm(10000000); err != nil {
+		log.Println("Could not parse parameters", err)
+	}
 	tmap := make(map[string]interface{}, len(req.Form))
 	for k, v := range req.Form {
 		if strings.ToLower(v[0]) == "true" {
