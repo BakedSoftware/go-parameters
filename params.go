@@ -575,8 +575,14 @@ func contains(haystack []string, needle string) bool {
 
 func ParseParams(req *http.Request) {
 	var p Params
-	if err := req.ParseMultipartForm(10000000); err != nil {
-		log.Println("Could not parse parameters", err)
+	ct := req.Header.Get("Content-Type")
+	ct = strings.Split(ct, ";")[0]
+	if ct == "multipart/form-data" {
+		if err := req.ParseMultipartForm(10000000); err != nil {
+			log.Println("Could not parse parameters", err)
+		}
+	} else {
+		req.ParseForm()
 	}
 	tmap := make(map[string]interface{}, len(req.Form))
 	for k, v := range req.Form {
@@ -595,8 +601,6 @@ func ParseParams(req *http.Request) {
 		}
 	}
 
-	ct := req.Header.Get("Content-Type")
-	ct = strings.Split(ct, ";")[0]
 	if ct == "application/json" && req.ContentLength > 0 {
 		err := json.NewDecoder(req.Body).Decode(&p.Values)
 		if err != nil {
