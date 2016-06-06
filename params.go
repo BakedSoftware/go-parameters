@@ -452,6 +452,8 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 				} else {
 					params.Values[param.Key] = id
 				}
+			} else {
+				params.Values[param.Key] = param.Value
 			}
 		}
 		fn(rw, req, p)
@@ -650,6 +652,8 @@ func ParseParams(req *http.Request) {
 			} else {
 				p.Values[k] = id
 			}
+		} else {
+			p.Values[k] = v
 		}
 	}
 
