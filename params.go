@@ -579,10 +579,12 @@ func ParseParams(req *http.Request) {
 	ct = strings.Split(ct, ";")[0]
 	if ct == "multipart/form-data" {
 		if err := req.ParseMultipartForm(10000000); err != nil {
-			log.Println("Could not parse parameters", err)
+			log.Println("Request.ParseMultipartForm Error", err)
 		}
 	} else {
-		req.ParseForm()
+		if err := req.ParseForm(); err != nil {
+			log.Println("Request.ParseForm Error", err)
+		}
 	}
 	tmap := make(map[string]interface{}, len(req.Form))
 	for k, v := range req.Form {
