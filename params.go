@@ -373,6 +373,12 @@ func (p *Params) GetBytes(key string) []byte {
 	return bytes
 }
 
+const (
+	DateOnly = "2006-01-02"
+	//DateTime is not recommended, rather use time.RFC3339
+	DateTime = "2006-01-02 15:04:05"
+)
+
 func (p *Params) GetTimeOk(key string) (time.Time, bool) {
 	val, ok := p.Get(key)
 	if !ok {
@@ -382,10 +388,13 @@ func (p *Params) GetTimeOk(key string) (time.Time, bool) {
 		return t, true
 	}
 	if str, ok := val.(string); ok {
-		if t, err := time.Parse("2006-01-02", str); err == nil {
+		if t, err := time.Parse(time.RFC3339, str); err == nil {
 			return t, true
 		}
-		if t, err := time.Parse("2006-01-02 15:04:05", str); err == nil {
+		if t, err := time.Parse(DateOnly, str); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse(DateTime, str); err == nil {
 			return t, true
 		}
 	}
@@ -471,6 +480,11 @@ type CustomTypeHandler func(field *reflect.Value, value interface{})
 // types
 var CustomTypeSetter CustomTypeHandler
 
+var (
+	typeOfTime      reflect.Type = reflect.TypeOf(time.Time{})
+	typeOfPtrToTime reflect.Type = reflect.PtrTo(typeOfTime)
+)
+
 //Sets the parameters to the object by type; does not handle nested parameters
 func (p *Params) Imbue(obj interface{}) {
 
@@ -535,6 +549,13 @@ func (p *Params) Imbue(obj interface{}) {
 		} else if fieldType.Type == reflect.SliceOf(reflect.TypeOf(float64(0))) {
 			//Set []float64
 			field.Set(reflect.ValueOf(p.GetFloatSlice(k)))
+		} else if fieldType.Type == typeOfTime {
+			//Set time.Time
+			field.Set(reflect.ValueOf(p.GetTime(k)))
+		} else if fieldType.Type == typeOfPtrToTime {
+			//Set *time.Time
+			t := p.GetTime(k)
+			field.Set(reflect.ValueOf(&t))
 		} else if CustomTypeSetter != nil {
 			val, _ := p.Get(k)
 			CustomTypeSetter(&field, val)
