@@ -109,6 +109,12 @@ func (p *Params) GetBoolOk(key string) (bool, bool) {
 	if ok {
 		if b, ib := val.(bool); ib {
 			return b, true
+		} else if i, ik := p.GetIntOK(key); ik {
+			if i == 0 {
+				return false, true
+			} else {
+				return true, true
+			}
 		}
 	}
 	return false, false
