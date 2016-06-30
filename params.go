@@ -383,9 +383,20 @@ const (
 	DateOnly = "2006-01-02"
 	//DateTime is not recommended, rather use time.RFC3339
 	DateTime = "2006-01-02 15:04:05"
+	// HTMLDateTimeLocal is the format used by the input type datetime-local
+	HTMLDateTimeLocal = "2006-01-02T15:04"
 )
 
 func (p *Params) GetTimeOk(key string) (time.Time, bool) {
+	return p.GetTimeInLocationOk(key, time.UTC)
+}
+
+func (p *Params) GetTime(key string) time.Time {
+	t, _ := p.GetTimeOk(key)
+	return t
+}
+
+func (p *Params) GetTimeInLocationOk(key string, loc *time.Location) (time.Time, bool) {
 	val, ok := p.Get(key)
 	if !ok {
 		return time.Time{}, false
@@ -394,13 +405,16 @@ func (p *Params) GetTimeOk(key string) (time.Time, bool) {
 		return t, true
 	}
 	if str, ok := val.(string); ok {
-		if t, err := time.Parse(time.RFC3339, str); err == nil {
+		if t, err := time.ParseInLocation(time.RFC3339, str, loc); err == nil {
 			return t, true
 		}
-		if t, err := time.Parse(DateOnly, str); err == nil {
+		if t, err := time.ParseInLocation(DateOnly, str, loc); err == nil {
 			return t, true
 		}
-		if t, err := time.Parse(DateTime, str); err == nil {
+		if t, err := time.ParseInLocation(DateTime, str, loc); err == nil {
+			return t, true
+		}
+		if t, err := time.ParseInLocation(HTMLDateTimeLocal, str, loc); err == nil {
 			return t, true
 		}
 	}
@@ -408,8 +422,8 @@ func (p *Params) GetTimeOk(key string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-func (p *Params) GetTime(key string) time.Time {
-	t, _ := p.GetTimeOk(key)
+func (p *Params) GetTimeInLocation(key string, loc *time.Location) time.Time {
+	t, _ := p.GetTimeInLocationOk(key, loc)
 	return t
 }
 
