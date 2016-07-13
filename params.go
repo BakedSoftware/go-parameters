@@ -465,6 +465,7 @@ func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		ParseParams(req)
 		fn(rw, req)
+		context.Clear(req)
 	}
 }
 
@@ -486,6 +487,7 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 			}
 		}
 		fn(rw, req, p)
+		context.Clear(req)
 	}
 }
 
