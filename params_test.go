@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -279,6 +280,74 @@ func TestImbue(t *testing.T) {
 	}
 }
 
+func TestImbueTime(t *testing.T) {
+	body := "test=true&created_at=2016-06-07T00:30Z&remind_on=2016-07-17"
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+	
+	type testType struct {
+		Test      bool
+		CreatedAt time.Time
+		RemindOn  *time.Time
+	}
+
+	var obj testType
+	params.Imbue(&obj)
+
+	if obj.Test != true {
+		t.Fatal("Value of 'test' should be 'true', got: ", obj.Test)
+	}
+	createdAt, _ := time.Parse(time.RFC3339, "2016-06-07T00:30Z00:00")
+	if !obj.CreatedAt.Equal(createdAt) {
+		t.Fatal("CreatedAt should be '2016-06-07T00:30Z', got:", obj.CreatedAt)
+	}
+	remindOn, _ := time.Parse(DateOnly, "2016-07-17")
+	if obj.RemindOn == nil || !obj.RemindOn.Equal(remindOn) {
+		t.Fatal("RemindOn should be '2016-07-17', got:", obj.RemindOn)
+	}
+}
+
+func TestHasAll(t *testing.T) {
+	body := "test=true&keys=this,that,something&values=1,2,3"
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+	//Test All
+	if ok, missing := params.HasAll("test", "keys", "values"); !ok || len(missing) > 0 {
+		t.Fatal("Params should have all keys, could not find", missing)
+	}
+
+	// Test Partial Contains
+	if ok, missing := params.HasAll("test"); !ok || len(missing) > 0 {
+		t.Fatal("Params should have key 'test', could not find", missing)
+	}
+
+	// Test Partial Missing
+	if ok, missing := params.HasAll("test", "nope"); ok || len(missing) == 0 {
+		t.Fatal("Params should not have key 'nope'", missing)
+	} else if contains(missing, "test") {
+		t.Fatal("Missing should not contain 'test'")
+	}
+
+	// Test All missing
+	if ok, missing := params.HasAll("negative", "nope"); ok || len(missing) == 0 {
+		t.Fatal("Params should not have key 'nope' nor 'negative'", missing)
+	}
+}
+
 // Test some garbage input, id= "" (empty string) 
 // Should either be not ok, or empty slice
 func TestParseEmpty(t *testing.T) {
@@ -292,13 +361,13 @@ func TestParseEmpty(t *testing.T) {
 	ParseParams(r)
 
 	params := GetParams(r)
-	
+
 	t.Log(params)
 	foo, ok := params.GetUint64SliceOk("id")
 	if ok {
-	t.Log("foo",foo)
+		t.Log("foo",foo)
 		if len(foo) > 0 {
 			t.Fatal("foo should be empty. Length",len(foo))
 		}
 	}
-}
+}	
