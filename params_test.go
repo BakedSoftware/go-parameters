@@ -291,7 +291,7 @@ func TestImbueTime(t *testing.T) {
 	ParseParams(r)
 
 	params := GetParams(r)
-	
+
 	type testType struct {
 		Test      bool
 		CreatedAt time.Time
@@ -348,11 +348,11 @@ func TestHasAll(t *testing.T) {
 	}
 }
 
-// Test some garbage input, id= "" (empty string) 
+// Test some garbage input, ids= "" (empty string) 
 // Should either be not ok, or empty slice
 func TestParseEmpty(t *testing.T) {
 	body := "{\"test\":true}"
-	r, err := http.NewRequest("PUT", "test?id=", strings.NewReader(body))
+	r, err := http.NewRequest("PUT", "test?ids=", strings.NewReader(body))
 	if err != nil {
 		t.Fatal("Could not build request", err)
 	}
@@ -363,11 +363,11 @@ func TestParseEmpty(t *testing.T) {
 	params := GetParams(r)
 
 	t.Log(params)
-	foo, ok := params.GetUint64SliceOk("id")
+	ids, ok := params.GetUint64SliceOk("ids")
 	if ok {
-		t.Log("foo",foo)
-		if len(foo) > 0 {
-			t.Fatal("foo should be empty. Length",len(foo))
+		t.Log("ids",ids)
+		if len(ids) > 0 {
+			t.Fatal("ids should be !ok or an empty array. Length:",len(ids))
 		}
 	}
 }	
