@@ -278,3 +278,27 @@ func TestImbue(t *testing.T) {
 		}
 	}
 }
+
+// Test some garbage input, id= "" (empty string) 
+// Should either be not ok, or empty slice
+func TestParseEmpty(t *testing.T) {
+	body := "{\"test\":true}"
+	r, err := http.NewRequest("PUT", "test?id=", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+	
+	t.Log(params)
+	foo, ok := params.GetUint64SliceOk("id")
+	if ok {
+	t.Log("foo",foo)
+		if len(foo) > 0 {
+			t.Fatal("foo should be empty. Length",len(foo))
+		}
+	}
+}
