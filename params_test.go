@@ -347,3 +347,27 @@ func TestHasAll(t *testing.T) {
 		t.Fatal("Params should not have key 'nope' nor 'negative'", missing)
 	}
 }
+
+// Test some garbage input, ids= "" (empty string) 
+// Should either be not ok, or empty slice
+func TestParseEmpty(t *testing.T) {
+	body := "{\"test\":true}"
+	r, err := http.NewRequest("PUT", "test?ids=", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+
+	t.Log(params)
+	ids, ok := params.GetUint64SliceOk("ids")
+	if ok {
+		t.Log("ids",ids)
+		if len(ids) > 0 {
+			t.Fatal("ids should be !ok or an empty array. Length:",len(ids))
+		}
+	}
+}	

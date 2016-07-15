@@ -224,14 +224,16 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 			}
 			return slice, true
 		case string:
-			raw := strings.Split(val.(string), ",")
-			slice := make([]int, len(raw))
-			for i, k := range raw {
-				if num, err := strconv.ParseInt(k, 10, 64); err == nil {
-					slice[i] = int(num)
+			if len(val.(string)) > 0 {
+				raw := strings.Split(val.(string), ",")
+				slice := make([]int, len(raw))
+				for i, k := range raw {
+					if num, err := strconv.ParseInt(k, 10, 64); err == nil {
+						slice[i] = int(num)
+					}
 				}
+				return slice, true
 			}
-			return slice, true
 		case []interface{}:
 			raw := val.([]interface{})
 			slice := make([]int, len(raw))
