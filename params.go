@@ -476,7 +476,6 @@ func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
 
 func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 	return func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		log.Print("MakeHTTPRouterParsedReq ", r.Header.Get("X-Request-ID"))
 		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
 		params := GetParams(r)
 		for _, param := range p {
@@ -492,7 +491,6 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 				params.Values[param.Key] = param.Value
 			}
 		}
-		log.Print("MakeHTTPRouterParsedReq.fn ! ", r.Header.Get("X-Request-ID"))
 		fn(rw, r, p)
 	}
 }
