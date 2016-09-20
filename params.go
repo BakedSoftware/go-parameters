@@ -22,10 +22,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
 	"github.com/ugorji/go/codec"
+)
+
+const (
+	paramsKey = "params"
 )
 
 type Params struct {
@@ -467,7 +470,6 @@ func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		ParseParams(req)
 		fn(rw, req)
-		context.Clear(req)
 	}
 }
 
@@ -489,13 +491,12 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 			}
 		}
 		fn(rw, req, p)
-		context.Clear(req)
 	}
 }
 
 func GetParams(req *http.Request) *Params {
-	params := context.Get(req, "params").(Params)
-	return &params
+	params := req.Context().Value(paramsKey).(*Params)
+	return params
 }
 
 type CustomTypeHandler func(field *reflect.Value, value interface{})
@@ -618,7 +619,7 @@ func contains(haystack []string, needle string) bool {
 	return false
 }
 
-func ParseParams(req *http.Request) {
+func ParseParams(req *http.Request) *Params {
 	var p Params
 	ct := req.Header.Get("Content-Type")
 	ct = strings.Split(ct, ";")[0]
@@ -715,5 +716,5 @@ func ParseParams(req *http.Request) {
 		}
 	}
 
-	context.Set(req, "params", p)
+	return &p
 }
