@@ -492,6 +492,7 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 				params.Values[param.Key] = param.Value
 			}
 		}
+		log.Print("MakeHTTPRouterParsedReq.fn ! ", r.Header.Get("X-Request-ID"))
 		fn(rw, r, p)
 	}
 }
