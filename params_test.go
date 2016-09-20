@@ -239,7 +239,6 @@ func TestParseJSONBodyMux(t *testing.T) {
 		t.Error("Mux did not match")
 	}
 	m.ServeHTTP(nil, r)
-
 }
 
 func TestImbue(t *testing.T) {
