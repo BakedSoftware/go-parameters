@@ -9,6 +9,7 @@ package parameters
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"io"
@@ -22,10 +23,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/julienschmidt/httprouter"
 	"github.com/ugorji/go/codec"
+)
+
+const (
+	paramsKey = "params"
 )
 
 type Params struct {
@@ -464,17 +468,16 @@ func (p *Params) GetJSON(key string) map[string]interface{} {
 }
 
 func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		ParseParams(req)
-		fn(rw, req)
-		context.Clear(req)
+	return func(rw http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		fn(rw, r)
 	}
 }
 
 func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
-	return func(rw http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		ParseParams(req)
-		params := GetParams(req)
+	return func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		params := GetParams(r)
 		for _, param := range p {
 			const ID = "id"
 			if strings.Contains(param.Key, ID) {
@@ -488,14 +491,13 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 				params.Values[param.Key] = param.Value
 			}
 		}
-		fn(rw, req, p)
-		context.Clear(req)
+		fn(rw, r, p)
 	}
 }
 
 func GetParams(req *http.Request) *Params {
-	params := context.Get(req, "params").(Params)
-	return &params
+	params := req.Context().Value(paramsKey).(*Params)
+	return params
 }
 
 type CustomTypeHandler func(field *reflect.Value, value interface{})
@@ -618,7 +620,7 @@ func contains(haystack []string, needle string) bool {
 	return false
 }
 
-func ParseParams(req *http.Request) {
+func ParseParams(req *http.Request) *Params {
 	var p Params
 	ct := req.Header.Get("Content-Type")
 	ct = strings.Split(ct, ";")[0]
@@ -715,5 +717,5 @@ func ParseParams(req *http.Request) {
 		}
 	}
 
-	context.Set(req, "params", p)
+	return &p
 }
