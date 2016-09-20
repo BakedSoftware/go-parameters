@@ -9,6 +9,7 @@ package parameters
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"io"
@@ -467,16 +468,17 @@ func (p *Params) GetJSON(key string) map[string]interface{} {
 }
 
 func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
-		ParseParams(req)
-		fn(rw, req)
+	return func(rw http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		fn(rw, r)
 	}
 }
 
 func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
-	return func(rw http.ResponseWriter, req *http.Request, p httprouter.Params) {
-		ParseParams(req)
-		params := GetParams(req)
+	return func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		log.Print("MakeHTTPRouterParsedReq ", r.Header.Get("X-Request-ID"))
+		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		params := GetParams(r)
 		for _, param := range p {
 			const ID = "id"
 			if strings.Contains(param.Key, ID) {
@@ -490,7 +492,7 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 				params.Values[param.Key] = param.Value
 			}
 		}
-		fn(rw, req, p)
+		fn(rw, r, p)
 	}
 }
 
