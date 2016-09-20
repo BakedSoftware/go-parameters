@@ -212,6 +212,25 @@ func TestParseJSONBodyMux(t *testing.T) {
 	m := mux.NewRouter()
 	m.KeepContext = true
 	m.HandleFunc("/test/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
+		ParseParams(r)
+
+		params := GetParams(r)
+
+		val, present := params.Get("test")
+		if !present {
+			t.Fatal("Key: 'test' not found")
+		}
+		if val != true {
+			t.Fatal("Value of 'test' should be 'true', got: ", val)
+		}
+
+		val, present = params.Get("id")
+		if !present {
+			t.Fatal("Key: 'id' not found")
+		}
+		if val != uint64(42) {
+			t.Fatal("Value of 'id' should be 42, got: ", val)
+		}
 	})
 
 	var match mux.RouteMatch
@@ -220,25 +239,6 @@ func TestParseJSONBodyMux(t *testing.T) {
 	}
 	m.ServeHTTP(nil, r)
 
-	ParseParams(r)
-
-	params := GetParams(r)
-
-	val, present := params.Get("test")
-	if !present {
-		t.Fatal("Key: 'test' not found")
-	}
-	if val != true {
-		t.Fatal("Value of 'test' should be 'true', got: ", val)
-	}
-
-	val, present = params.Get("id")
-	if !present {
-		t.Fatal("Key: 'id' not found")
-	}
-	if val != uint64(42) {
-		t.Fatal("Value of 'id' should be 42, got: ", val)
-	}
 }
 
 func TestImbue(t *testing.T) {
@@ -348,7 +348,7 @@ func TestHasAll(t *testing.T) {
 	}
 }
 
-// Test some garbage input, ids= "" (empty string) 
+// Test some garbage input, ids= "" (empty string)
 // Should either be not ok, or empty slice
 func TestParseEmpty(t *testing.T) {
 	body := "{\"test\":true}"
@@ -365,9 +365,9 @@ func TestParseEmpty(t *testing.T) {
 	t.Log(params)
 	ids, ok := params.GetUint64SliceOk("ids")
 	if ok {
-		t.Log("ids",ids)
+		t.Log("ids", ids)
 		if len(ids) > 0 {
-			t.Fatal("ids should be !ok or an empty array. Length:",len(ids))
+			t.Fatal("ids should be !ok or an empty array. Length:", len(ids))
 		}
 	}
-}	
+}
