@@ -371,3 +371,40 @@ func TestParseEmpty(t *testing.T) {
 		}
 	}
 }
+
+// Test Uint64 returns not ok for negative values
+func TestNegativeUint(t *testing.T) {
+	body := "{\"id\":-1}"
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	ParseParams(r)
+
+	params := GetParams(r)
+
+	t.Log(params)
+	id, ok := params.GetUint64Ok("id")
+	if ok {
+		t.Fatal("Negative uint64 should be !ok not", id)
+	}
+
+	body = "{\"id\":1}"
+	r, err = http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	ParseParams(r)
+
+	params = GetParams(r)
+
+	t.Log(params)
+	id, ok = params.GetUint64Ok("id")
+	if !ok || id != 1 {
+		t.Fatal("Id should be 1 not", id)
+	}
+}

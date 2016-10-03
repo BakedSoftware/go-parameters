@@ -264,7 +264,7 @@ func (p *Params) GetUint64Ok(key string) (uint64, bool) {
 	if sval, sok := val.(string); sok {
 		var err error
 		val, err = strconv.ParseFloat(sval, 64)
-		ok = err == nil
+		ok = err == nil && val.(float64) >= 0
 	}
 	if ok {
 		if valInt, ok := val.(int64); ok {
@@ -280,12 +280,13 @@ func (p *Params) GetUint64Ok(key string) (uint64, bool) {
 			return uint64(valUint), true
 		} else if valUint, ok := val.(uint32); ok {
 			return uint64(valUint), true
-		} else if valfloat, ok := val.(float64); ok {
+		} else if valfloat, ok := val.(float64); valfloat >= 0 && ok {
 			return uint64(valfloat), true
 		} else if valbyte, ok := val.([]byte); ok {
 			var err error
-			val, err = strconv.ParseFloat(string(valbyte), 64)
-			ok = err == nil
+			valfloat, err = strconv.ParseFloat(string(valbyte), 64)
+			ok = err == nil && valfloat >= 0
+			return uint64(valfloat), ok
 		}
 	}
 	return 0, false
