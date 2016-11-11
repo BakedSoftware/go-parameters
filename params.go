@@ -605,6 +605,7 @@ func (p *Params) HasAll(keys ...string) (bool, []string) {
 func (p *Params) Permit(allowedKeys []string) {
 	for key, _ := range p.Values {
 		if !contains(allowedKeys, key) {
+			log.Println("Filtering unpermitted parameter:",key)
 			delete(p.Values, key)
 		}
 	}
