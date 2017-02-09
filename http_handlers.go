@@ -99,8 +99,8 @@ func EnableGZIP(fn httprouter.Handle) httprouter.Handle {
 		}
 		w.Header().Set("Content-Encoding", "gzip")
 		gz := gzip.NewWriter(w)
-		defer gz.Close()
 		gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
 		fn(gzr, r, p)
+		gz.Close()
 	}
 }
