@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	paramsKey = "params"
+	ParamsKey = "params"
 )
 
 type Params struct {
@@ -470,14 +470,14 @@ func (p *Params) GetJSON(key string) map[string]interface{} {
 
 func MakeParsedReq(fn http.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 		fn(rw, r)
 	}
 }
 
 func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 	return func(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 		params := GetParams(r)
 		for _, param := range p {
 			const ID = "id"
@@ -497,7 +497,7 @@ func MakeHTTPRouterParsedReq(fn httprouter.Handle) httprouter.Handle {
 }
 
 func GetParams(req *http.Request) *Params {
-	params := req.Context().Value(paramsKey).(*Params)
+	params := req.Context().Value(ParamsKey).(*Params)
 	return params
 }
 
@@ -623,6 +623,9 @@ func contains(haystack []string, needle string) bool {
 
 func ParseParams(req *http.Request) *Params {
 	var p Params
+	if params, exists := req.Context().Value(ParamsKey).(*Params); exists {
+		return params
+	}
 	ct := req.Header.Get("Content-Type")
 	ct = strings.Split(ct, ";")[0]
 	if ct == "multipart/form-data" {
