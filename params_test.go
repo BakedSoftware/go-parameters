@@ -18,7 +18,7 @@ func TestParseJSONBody(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -39,7 +39,7 @@ func TestParseJSONBodyContentType(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json; charset=utf8")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -60,7 +60,7 @@ func TestParseNestedJSONBody(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -119,7 +119,7 @@ func TestParseGET(t *testing.T) {
 		t.Fatal("Could not build request", err)
 	}
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -140,7 +140,7 @@ func TestParsePOST(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -161,7 +161,7 @@ func TestParsePUT(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -182,7 +182,7 @@ func TestParsePostUrlJSON(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -213,7 +213,7 @@ func TestParseJSONBodyMux(t *testing.T) {
 	m := mux.NewRouter()
 	m.KeepContext = true
 	m.HandleFunc("/test/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+		r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 		params := GetParams(r)
 
@@ -249,7 +249,7 @@ func TestImbue(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -288,7 +288,7 @@ func TestImbueTime(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -322,7 +322,7 @@ func TestHasAll(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 	//Test All
@@ -358,7 +358,7 @@ func TestParseEmpty(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	r = r.WithContext(context.WithValue(r.Context(), paramsKey, ParseParams(r)))
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -381,7 +381,7 @@ func TestNegativeUint(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	ParseParams(r)
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params := GetParams(r)
 
@@ -398,7 +398,7 @@ func TestNegativeUint(t *testing.T) {
 	}
 	r.Header.Set("Content-Type", "application/json")
 
-	ParseParams(r)
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
 
 	params = GetParams(r)
 
