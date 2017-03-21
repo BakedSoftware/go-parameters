@@ -512,6 +512,18 @@ var (
 	typeOfPtrToTime reflect.Type = reflect.PtrTo(typeOfTime)
 )
 
+// Clone makes a copy of this params object
+func (p *Params) Clone() *Params {
+	values := make(map[string]interface{}, len(p.Values))
+	for k, v := range p.Values {
+		values[k] = v
+	}
+	return &Params{
+		isBinary: p.isBinary,
+		Values:   values,
+	}
+}
+
 //Sets the parameters to the object by type; does not handle nested parameters
 func (p *Params) Imbue(obj interface{}) {
 
