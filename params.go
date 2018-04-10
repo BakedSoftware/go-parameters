@@ -542,10 +542,8 @@ func (p *Params) Imbue(obj interface{}) {
 		//Get the type and bool if found
 		fieldType, found := typeOfObject.FieldByName(key)
 
-		//Did we get a parameter that is not our object?
+		//Skip parameter if not found on struct
 		if !found {
-			//Error or log
-			log.Println("Attempted to set missing param k: ", k, " and key as", key)
 			continue
 		}
 
