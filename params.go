@@ -224,6 +224,8 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 			for i, k := range raw {
 				if num, err := strconv.ParseInt(k, 10, 64); err == nil {
 					slice[i] = int(num)
+				} else {
+					return slice, false
 				}
 			}
 			return slice, true
@@ -234,6 +236,8 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 				for i, k := range raw {
 					if num, err := strconv.ParseInt(k, 10, 64); err == nil {
 						slice[i] = int(num)
+					} else {
+						return slice, false
 					}
 				}
 				return slice, true
@@ -249,6 +253,8 @@ func (p *Params) GetIntSliceOk(key string) ([]int, bool) {
 				} else if num, ok := k.(string); ok {
 					if parsed, err := strconv.ParseInt(num, 10, 64); err == nil {
 						slice[i] = int(parsed)
+					} else {
+						return slice, false
 					}
 				}
 			}
