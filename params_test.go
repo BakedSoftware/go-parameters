@@ -2,7 +2,9 @@ package parameters
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -407,4 +409,97 @@ func TestNegativeUint(t *testing.T) {
 	if !ok || id != 1 {
 		t.Fatal("Id should be 1 not", id)
 	}
+}
+
+func TestNestedStructs(t *testing.T) {
+	type testStruct struct {
+		Val        uint64 `json:"val"`
+		NestStruct struct {
+			Field1 string `json:"field_1"`
+		} `json:"nest_struct"`
+	}
+
+	body := `{
+		"val": 1234,
+		"nest_struct": {
+			"field_1": "Hello World"
+		}
+	}`
+
+	expected := &testStruct{
+		Val: 1234,
+		NestStruct: struct {
+			Field1 string `json:"field_1"`
+		}{
+			Field1: "Hello World",
+		},
+	}
+
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
+
+	params := GetParams(r)
+
+	testObj := &testStruct{}
+	params.Imbue(testObj)
+
+	if !reflect.DeepEqual(testObj, expected) {
+		t.Fatalf("Expected %+v, Got %+v", expected, testObj)
+	}
+
+}
+
+func TestCustomTypeSetter(t *testing.T) {
+	type testStruct struct {
+		Val        uint64 `json:"val"`
+		NestStruct struct {
+			Field1 string `json:"field_1"`
+		} `json:"nest_struct"`
+	}
+
+	body := `{
+		"val": 1234,
+		"nest_struct": {
+			"field_1": "Hello World"
+		}
+	}`
+
+	expected := &testStruct{
+		Val: 1234,
+		NestStruct: struct {
+			Field1 string `json:"field_1"`
+		}{
+			Field1: "Goodby World",
+		},
+	}
+	CustomTypeSetter = func(field *reflect.Value, value interface{}) error {
+		if field.Type() == reflect.TypeOf(expected.NestStruct) {
+			field.Set(reflect.ValueOf(expected.NestStruct))
+			return nil
+		}
+		return errors.New("no type def found")
+	}
+
+	r, err := http.NewRequest("PUT", "test", strings.NewReader(body))
+	if err != nil {
+		t.Fatal("Could not build request", err)
+	}
+	r.Header.Set("Content-Type", "application/json")
+
+	r = r.WithContext(context.WithValue(r.Context(), ParamsKey, ParseParams(r)))
+
+	params := GetParams(r)
+
+	testObj := &testStruct{}
+	params.Imbue(testObj)
+
+	if !reflect.DeepEqual(testObj, expected) {
+		t.Fatalf("Expected %+v, Got %+v", expected, testObj)
+	}
+
 }
