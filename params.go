@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
@@ -599,12 +600,50 @@ func (p *Params) Imbue(obj interface{}) {
 			//Set *time.Time
 			t := p.GetTime(k)
 			field.Set(reflect.ValueOf(&t))
-		} else if CustomTypeSetter != nil {
-			val, _ := p.Get(k)
-			CustomTypeSetter(&field, val)
+		} else if newObj, err := p.parseAsJson(key, k, objectValue); err == nil {
+			field.Set(reflect.ValueOf(newObj).Elem())
+		} else {
+			if CustomTypeSetter != nil {
+				log.Println("Key value before the custom type setter: ", k)
+				val, _ := p.Get(k)
+				CustomTypeSetter(&field, val)
+			}
 		}
-
 	}
+}
+
+func (p *Params) parseAsJson(key, k string, objectValue reflect.Value) (interface{}, error) {
+	if objectValue.IsZero() {
+		return nil, errors.New("object value was zero")
+	}
+
+	// Attempt to JSON parse the struct first
+	val := p.GetJSON(k)
+	str, err := json.Marshal(val)
+	if err != nil {
+		return nil, err
+	}
+	r := bytes.NewReader(str)
+
+	fieldValue := reflect.Indirect(objectValue).FieldByName(key)
+	if reflect.ValueOf(fieldValue).IsZero() {
+		return nil, errors.New("field value was zero")
+	}
+
+	typeOfP := reflect.TypeOf(fieldValue.Interface())
+	newObj := reflect.New(typeOfP).Interface()
+
+	dec := json.NewDecoder(r)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(newObj); err != nil {
+		return nil, err
+	}
+
+	if reflect.ValueOf(newObj).IsZero() {
+		return nil, errors.New("new object is zero value")
+	}
+
+	return newObj, nil
 }
 
 // HasAll will return if all specified keys are found in the params object
