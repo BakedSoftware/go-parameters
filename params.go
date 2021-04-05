@@ -507,7 +507,7 @@ func GetParams(req *http.Request) *Params {
 	return params
 }
 
-type CustomTypeHandler func(field *reflect.Value, value interface{})
+type CustomTypeHandler func(field *reflect.Value, value interface{}) error
 
 // CustomTypeSetter is used when Imbue is called on an object to handle unknown
 // types
@@ -599,11 +599,28 @@ func (p *Params) Imbue(obj interface{}) {
 			//Set *time.Time
 			t := p.GetTime(k)
 			field.Set(reflect.ValueOf(&t))
-		} else if CustomTypeSetter != nil {
+		} else {
 			val, _ := p.Get(k)
-			CustomTypeSetter(&field, val)
-		}
+			if CustomTypeSetter != nil && CustomTypeSetter(&field, val) == nil {
+				continue
+			}
 
+			if subVals, ok := p.GetJSONOk(k); ok {
+				fieldValue := reflect.Indirect(objectValue).FieldByName(key)
+				if reflect.ValueOf(fieldValue).IsZero() {
+					continue
+				}
+
+				typeOfP := reflect.TypeOf(fieldValue.Interface())
+				newObj := reflect.New(typeOfP).Interface()
+
+				subParam := &Params{
+					Values: subVals,
+				}
+				subParam.Imbue(newObj)
+				field.Set(reflect.ValueOf(newObj).Elem())
+			}
+		}
 	}
 }
 
